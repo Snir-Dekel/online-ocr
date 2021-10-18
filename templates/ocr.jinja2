@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>SnirDekel.com</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}">
+
+    <style>
+        body {
+            background-color: rgb(33, 37, 41);
+            color: white;
+            font-family: Arial, serif;
+        }
+
+        input[type="radio"] {
+            cursor: pointer;
+            transform: scale(2);
+        }
+    </style>
+</head>
+<body>
+
+<form action="/ocr" method="post" enctype="multipart/form-data">
+    <h1 style="text-align: center;font-size:3rem">Paste your image here (Ctrl-V)</h1>
+    <input name="image" style="display: none" id="base_64_text">
+    <!-- TODO start -->
+    {#<div>#}
+    {#  <input type="radio" id="huey" name="drone" value="huey"#}
+    {#         checked>#}
+    {#  <label for="huey">English</label>#}
+    {#</div>#}
+    {##}
+    {#<div>#}
+    {#  <input type="radio" id="dewey" name="drone" value="dewey">#}
+    {#  <label for="dewey">Hebrew</label>#}
+    {#</div>#}
+    <div style="text-align: center;font-size: 200%;">
+        {% if not lang or lang=="eng" %}
+            <input type="radio" name="language" value="eng" checked> English <br>
+            <input type="radio" name="language" value="heb"> Hebrew <br>
+            <input type="radio" name="language" value="ara"> Arabic <br>
+
+        {% elif lang == "heb" %}
+            <input type="radio" name="language" value="eng"> English <br>
+            <input type="radio" name="language" value="heb" checked> Hebrew <br>
+            <input type="radio" name="language" value="ara"> Arabic <br>
+
+        {% elif lang == "ara" %}
+            <input type="radio" name="language" value="eng"> English <br>
+            <input type="radio" name="language" value="heb"> Hebrew <br>
+            <input type="radio" name="language" value="ara" checked> Arabic <br>
+        {% endif %}
+    </div>
+    <!-- TODO end -->
+
+
+
+    {% if image_text %}
+        <h2 id="generated_text" style="text-align: center;font-size:3rem">{{ image_text|e }}</h2>
+        <h2 onclick="navigator.clipboard.writeText(document.getElementById('generated_text').innerHTML);this.innerHTML='Your text copied to clipboard (Press Ctrl-V)';this.style.cursor = 'auto'" style="text-align: center;cursor:pointer;">Click here to copy the text</h2>
+    {% endif %}
+</form>
+<script>
+    window.addEventListener("paste", function (e) {
+        retrieveImageFromClipboardAsBase64(e, function (imageDataBase64) {
+            if (imageDataBase64) {
+                {#console.log(imageDataBase64)#}
+                document.getElementById("base_64_text").value = imageDataBase64
+                document.getElementsByTagName("form")[0].submit()
+            }
+        });
+    }, false);
+
+
+    function retrieveImageFromClipboardAsBase64(pasteEvent, callback, imageFormat) {
+        if (pasteEvent.clipboardData === false) {
+            if (typeof (callback) == "function") {
+                callback(undefined);
+            }
+        }
+
+        const items = pasteEvent.clipboardData.items;
+
+        if (items === undefined) {
+            if (typeof (callback) == "function") {
+                callback(undefined);
+            }
+        }
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf("image") === -1) continue;
+            const blob = items[i].getAsFile();
+
+            const mycanvas = document.createElement("canvas");
+            const ctx = mycanvas.getContext('2d');
+
+            const img = new Image();
+
+            img.onload = function () {
+                mycanvas.width = this.width;
+                mycanvas.height = this.height;
+
+                ctx.drawImage(img, 0, 0);
+
+                if (typeof (callback) == "function") {
+                    callback(mycanvas.toDataURL(
+                        (imageFormat || "image/png")
+                    ));
+                }
+            };
+
+            const URLObj = window.URL || window.webkitURL;
+
+            img.src = URLObj.createObjectURL(blob);
+        }
+    }
+
+
+
+</script>
+<h4 style="text-align: center;padding: 1rem;">Instructions: copy any image with text inside to your clipboard and the website will extract the text inside. made with python, tesseractOCR (Optical Character Recognition) and flask to handle http requets</h4>
+</body>
+</html>
