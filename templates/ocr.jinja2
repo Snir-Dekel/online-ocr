@@ -25,17 +25,7 @@
 <form action="/ocr" method="post" enctype="multipart/form-data">
     <h1 style="text-align: center;font-size:3rem">Paste your image here (Ctrl-V)</h1>
     <input name="image" style="display: none" id="base_64_text">
-    <!-- TODO start -->
-    {#<div>#}
-    {#  <input type="radio" id="huey" name="drone" value="huey"#}
-    {#         checked>#}
-    {#  <label for="huey">English</label>#}
-    {#</div>#}
-    {##}
-    {#<div>#}
-    {#  <input type="radio" id="dewey" name="drone" value="dewey">#}
-    {#  <label for="dewey">Hebrew</label>#}
-    {#</div>#}
+
     <div style="text-align: center;font-size: 200%;">
         {% if not lang or lang=="eng" %}
             <input type="radio" name="language" value="eng" checked> English <br>
@@ -53,8 +43,6 @@
             <input type="radio" name="language" value="ara" checked> Arabic <br>
         {% endif %}
     </div>
-    <!-- TODO end -->
-
 
 
     {% if image_text %}
