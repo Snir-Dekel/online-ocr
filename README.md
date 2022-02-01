@@ -3,8 +3,10 @@
 
 ☐ OCR
   ☐ Tesseract OCR Engine by Google
-☐ Computer Vision-101 food classes classifier
-☐ NLP-Natural Language Processing, disaster detector, spam detector
+☐ Computer Vision
+  ☐ 101 food classes classifier
+☐ NLP-Natural Language Processing
+  ☐ disaster detector, spam detector
 </pre>
 <!-- ![OCR](https://i.giphy.com/media/cGd3NE167XlmTNWs0h/source.gif) -->
 ![OCR](https://i.giphy.com/media/jLuCdovtokReYFDvIy/source.gif)
