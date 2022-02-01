@@ -12,6 +12,7 @@
 ![OCR](https://i.giphy.com/media/jLuCdovtokReYFDvIy/source.gif)
 <hr>
 
-<!-- ![FOOD101](https://i.giphy.com/media/O1iyvCcPanF2CO1WOQ/source.gif) -->
 ![FOOD101](https://i.giphy.com/media/n6H5YAltKEyag4aQXo/source.gif)
+<hr>
+
 ![NLP](https://i.giphy.com/media/2VvT1438yyX6WbhpVC/source.gif)
