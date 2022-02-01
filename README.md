@@ -1,7 +1,7 @@
 # python-website
 <pre>
 
-☐ OCR
+☐ OCR-Optical Character Recognition
   ☐ Tesseract OCR Engine by Google
 ☐ Computer Vision
   ☐ 101 food classes classifier
