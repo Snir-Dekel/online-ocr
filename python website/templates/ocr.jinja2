@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>online-ocr</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='ocr_favicon.png') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.11/cropper.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.11/cropper.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+        body:not(label){
+            background-color: #202731;
+            color: white;
+            font-family: monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .wrapper {
+            border-radius: 0.5rem;
+            display: inline-flex;
+            height: 100px;
+            width: 400px;
+            justify-content: space-evenly;
+            padding: 20px 15px;
+            box-shadow: 5px 5px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .wrapper .option {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+            margin: 0 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 0 5px;
+            border: 2px solid lightgrey;
+            transition: all 0.3s ease;
+        }
+
+        .dot {
+            height: 20px;
+            width: 20px;
+            background: #d9d9d9;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .dot::before {
+            position: absolute;
+            content: "";
+            top: 4px;
+            left: 4px;
+            width: 12px;
+            height: 12px;
+            background: #0069d9;
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(1.5);
+            transition: all 0.3s ease;
+        }
+
+        input[type="radio"] {
+            display: none;
+        }
+
+        #option-1:checked ~ .option-1,
+        #option-2:checked ~ .option-2, #option-3:checked ~ .option-3 {
+            border-color: #0069d9;
+            background: #0069d9;
+        }
+
+        #option-1:checked ~ .option-1 .dot,
+        #option-2:checked ~ .option-2 .dot, #option-3:checked ~ .option-3 .dot {
+            background: #fff;
+        }
+
+        #option-1:checked ~ .option-1 .dot::before,
+        #option-2:checked ~ .option-2 .dot::before, #option-3:checked ~ .option-3 .dot::before {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        #option-1:checked ~ .option-1 span,
+        #option-2:checked ~ .option-2 span, #option-3:checked ~ .option-3 span {
+            color: #fff;
+        }
+
+        .option span {
+            font-size: 20px;
+            color: #808080;
+        }
+
+        .dot {
+            margin-right: 0.4rem;
+        }
+
+
+        img:not(#website_logo) {
+            display: block;
+            max-width: 100%;
+            max-height: 50vh;
+        }
+
+        .cropper-modal {
+            opacity: 0.4;
+        }
+
+
+        .spinner::before {
+            content: "";
+            box-sizing: border-box;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border-radius: 50%;
+            border: 6px solid lightgray;
+            border-top-color: #004bff;
+            animation: spinner 1s linear infinite;
+        }
+
+        @keyframes spinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+
+        .blue_button {
+            transition-property: background-color;
+            transition-duration: 0.25s;
+            transition-timing-function: ease-out;
+            background: #0688fa;
+            border-radius: 6px;
+            border: 1px solid #ffffff;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 9px 23px;
+        }
+        .blue_button:hover{
+            background-color: #08adff;
+        }
+
+        .blue_button_enabled:active {
+            transform: translatey(4px);
+        }
+
+        a {
+            color:#2ac4dd;
+            transition-duration: 0.25s;
+            transition-timing-function: ease-out;
+        }
+        a:hover {
+            color: #00ffff;
+        }
+
+
+        .anim-typewriter {
+            cursor: url("data:image/svg+xml, %3Csvg%20width%3D%2268%22%20height%3D%2268%22%20viewBox%3D%220%200%2068%2068%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%0A%3Cpath%20d%3D%22M19.2747%2042.3067C19.2875%2041.3068%2019.2872%2041.3067%2019.2868%2041.3067L19.2862%2041.3067L19.2846%2041.3067L19.281%2041.3067L19.2713%2041.3066L19.2431%2041.3067C19.2205%2041.3069%2019.1903%2041.3075%2019.1541%2041.3087C19.0825%2041.3112%2018.9831%2041.3168%2018.8701%2041.3293C18.6838%2041.3498%2018.3086%2041.4031%2017.9803%2041.5907C17.8053%2041.6907%2017.5526%2041.8804%2017.4078%2042.2131C17.2497%2042.5765%2017.2924%2042.9413%2017.4127%2043.229C17.6119%2043.7055%2018.0705%2044.0928%2018.5626%2044.4301L18.6299%2044.4763L18.69%2044.5045C18.6919%2044.5055%2018.6943%2044.5068%2018.6973%2044.5085C18.7141%2044.518%2018.7488%2044.5385%2018.7979%2044.5721C18.8961%2044.6392%2019.0528%2044.7587%2019.2417%2044.9479C19.6149%2045.3216%2020.1276%2045.9806%2020.5608%2047.0729C20.5622%2047.077%2020.5638%2047.0813%2020.5654%2047.086C20.5695%2047.0971%2020.5741%2047.1096%2020.5793%2047.1234C20.5961%2047.1674%2020.6194%2047.2251%2020.6501%2047.294C20.7116%2047.4316%2020.8035%2047.6156%2020.934%2047.8264C21.1947%2048.2477%2021.6138%2048.7833%2022.2562%2049.2669C23.4018%2050.1293%2025.1354%2050.7371%2027.6667%2050.4275V53.2133C27.6667%2053.237%2027.6645%2053.2575%2027.6615%2053.274C27.6295%2053.2767%2027.5773%2053.2771%2027.5006%2053.2665C19.4555%2050.558%2013.6667%2042.9534%2013.6667%2034C13.6667%2022.7684%2022.7709%2013.6667%2034%2013.6667C45.2291%2013.6667%2054.3333%2022.7684%2054.3333%2034C54.3333%2042.9525%2048.5503%2050.5554%2040.511%2053.2679C40.4286%2053.2802%2040.3726%2053.2803%2040.3383%2053.2777C40.3354%2053.2609%2040.3333%2053.2401%2040.3333%2053.216V47.3627C40.3333%2046.0827%2040.0735%2045.0107%2039.6568%2044.1623C41.5916%2043.8029%2043.5586%2043.1336%2045.1624%2041.7916C47.2846%2040.0158%2048.6107%2037.203%2048.6107%2032.888C48.6107%2030.5271%2047.8363%2028.5389%2046.5457%2026.9431C46.8539%2025.8657%2047.1697%2023.7677%2046.1354%2021.1499L45.9614%2020.7095L45.5105%2020.565L45.2053%2021.5173C45.5105%2020.565%2045.5095%2020.5647%2045.5085%2020.5644L45.5065%2020.5638L45.5025%2020.5625L45.4937%2020.5598L45.4742%2020.5541C45.4603%2020.5501%2045.4445%2020.5459%2045.4268%2020.5414C45.3915%2020.5326%2045.3487%2020.5231%2045.2985%2020.514C45.1978%2020.4959%2045.0679%2020.4793%2044.908%2020.4719C44.5875%2020.4572%2044.1518%2020.4798%2043.5953%2020.5972C42.5522%2020.8172%2041.0923%2021.3681%2039.1666%2022.6213C37.4967%2022.1961%2035.7422%2021.9916%2034.0059%2021.9814V21.9813L33.9956%2021.9813C32.2573%2021.989%2030.503%2022.1959%2028.837%2022.6168C26.9093%2021.3629%2025.4478%2020.8118%2024.4035%2020.5918C23.8465%2020.4745%2023.4105%2020.4519%2023.0899%2020.4666C22.9298%2020.4739%2022.7999%2020.4905%2022.6992%2020.5087C22.649%2020.5178%2022.6062%2020.5272%2022.5709%2020.536C22.5532%2020.5404%2022.5374%2020.5447%2022.5235%2020.5486L22.504%2020.5544L22.4953%2020.557L22.4912%2020.5583L22.4892%2020.5589C22.4882%2020.5593%2022.4873%2020.5596%2022.792%2021.512L22.4873%2020.5596L22.0354%2020.7041L21.8616%2021.1456C20.8298%2023.7654%2021.146%2025.8621%2021.4562%2026.9412C20.164%2028.5382%2019.3893%2030.5241%2019.3893%2032.8853C19.3893%2037.1897%2020.712%2040.0023%2022.8273%2041.7833C24.4318%2043.1343%2026.4014%2043.8113%2028.3386%2044.1763C28.1416%2044.5863%2027.9816%2045.0476%2027.8691%2045.5582C27.3481%2045.7381%2026.6792%2045.8869%2025.9971%2045.8257C25.1517%2045.7497%2024.1984%2045.3484%2023.4141%2044.0091L23.4133%2044.0076L23.3969%2043.9792C23.3837%2043.9565%2023.3657%2043.9265%2023.3431%2043.89C23.2978%2043.8173%2023.2334%2043.7185%2023.1498%2043.6019C22.9837%2043.37%2022.737%2043.0607%2022.4092%2042.7442C21.7606%2042.118%2020.7333%2041.4076%2019.3454%2041.3092L19.3165%2041.3071L19.2875%2041.3068L19.2747%2042.3067ZM52.6667%201H15.3333C7.41838%201%201%207.41838%201%2015.3333V52.6667C1%2060.5816%207.41838%2067%2015.3333%2067H52.6667C60.5844%2067%2067%2060.5815%2067%2052.6667V15.3333C67%207.41851%2060.5844%201%2052.6667%201Z%22%20fill%3D%22%23005AFF%22%20stroke%3D%22black%22%20stroke-width%3D%222%22/%3E%0A%3C/svg%3E%0A") 32 32, auto;
+            display: inline-flex;
+            border-right: 2px solid white;
+            white-space: nowrap;
+            overflow: hidden;
+
+        }
+
+        .anim-typewriter {
+            animation: typewriter 2s steps(12) 0.4s 1 normal both,
+            blinkTextCursor 500ms steps(12) 8 normal;
+        }
+
+        @keyframes typewriter {
+            0% {
+                width: 0;
+            }
+            99% {
+                width: 5.5em;
+            }
+            100% {
+                display: inline;
+                border-right-color: transparent;
+            }
+        }
+
+
+        @keyframes blinkTextCursor {
+            100% {
+                border-right-color: white;
+            }
+            0% {
+                border-right-color: transparent;
+            }
+        }
+
+        #spinner_div_2{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 10;
+         }
+      .nav-link{
+            padding: 0 1rem !important;
+            text-decoration: underline;
+            font-size: 160%;
+        }
+
+        nav {
+            padding: .5rem 1rem;
+        }
+        h1{
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-sm
+ navbar-dark bg-dark" style="
+    background-color: rgb(22,22,22) !important;
+">
+    <a href="/" class="navbar-brand" style="font-size: 150%;">
+        <img style="padding-right: 8px;margin-top: -4px;cursor:pointer;" id="website_logo"
+                 src="{{ url_for('static', filename="logo_transparent.png") }}" alt="website logo">SnirDekel.com</a>
+    <button class="navbar-toggler" data-toggle="collapse" data-target="#navbarMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div id="navbarMenu" class="navbar-collapse collapse">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/food">Food</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/text">Text</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+
+<form action="/ocr" method="post" enctype="multipart/form-data">
+    <h1 style="text-align: center;font-size:3rem;color:#0668fa;margin-top: 1rem">Paste your image here (Ctrl+V)</h1>
+    <input name="image" style="display: none" id="base_64_text">
+
+
+    <div ondblclick="create_cropper()" style="max-height: 800px;position: relative">
+        <img style="display: block;margin: 0 auto 1rem;max-width:100%" id="pasted_image">
+        <div id="spinner_div" style="position: absolute;top: 50%;left: 50%;"></div>
+    </div>
+
+
+    <img style="display: none;" id="original_image">
+
+
+    <div style="text-align: center;margin-top: 2rem;">
+        <div class="wrapper">
+            <input type="radio" name="language" value="eng" id="option-1" checked>
+            <input type="radio" name="language" value="heb" id="option-2">
+            <input type="radio" name="language" value="ara" id="option-3">
+
+
+            <label for="option-1" class="option option-1">
+                <div class="dot"></div>
+                <span>English</span>
+            </label>
+            <label for="option-2" class="option option-2">
+                <div class="dot"></div>
+                <span>Hebrew</span>
+            </label>
+            <label for="option-3" class="option option-3">
+                <div class="dot"></div>
+                <span>Arabic</span>
+            </label>
+        </div>
+
+    </div>
+
+
+    <h2 id="generated_text" spellcheck="false" style="text-align: center;font-size: 2rem;width: fit-content;margin: 0.9rem auto;display: block;padding:0.5rem;outline-width: 0;caret-color: cyan"></h2>
+    <div id="button_div" style="text-align: center;margin-top: 1rem;display: none;">
+    <button type="button" class="blue_button blue_button_enabled" id="copy_text_button"
+        onclick="navigator.clipboard.writeText(document.getElementById('generated_text').innerText);this.innerHTML='Copied';this.style.cursor = 'auto';this.classList.remove('blue_button_enabled')"
+        >Copy</button>
+    <button type="button" class="blue_button blue_button_enabled" id="translate_text_button" onclick="translate_text()" >Translate</button>
+    </div>
+</form>
+<script>
+    function translate_text() {
+        let text_to_translate = document.getElementById('generated_text').innerText
+
+
+        fetch("/translate", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(text_to_translate),
+        })
+            .then(response => response.json())
+            .then(data => {
+
+                    document.querySelector("#translate_text_button").innerText = data["translation"]
+                    document.querySelector("#translate_text_button").setAttribute("onclick", "navigator.clipboard.writeText(document.getElementById('translate_text_button').innerText);this.innerHTML='Copied';this.style.cursor = 'auto';document.querySelector('#translate_text_button').setAttribute('onclick', '');                document.getElementById('translate_text_button').classList.remove('blue_button_enabled')")
+                }
+            );
+    }
+
+    const image = document.getElementById('pasted_image');
+
+    let cropper = new Cropper(image);
+
+    window.onfocus = on_window_load
+    {#window.onload = on_window_load#}
+
+    window.addEventListener("paste", function (e) {
+        retrieveImageFromClipboardAsBase64(e, function (imageDataBase64) {
+            if (imageDataBase64) {
+                on_image_paste(imageDataBase64)
+            }
+        });
+    }, false);
+
+
+    let previous_base64data
+
+    function on_window_load() {
+        navigator.clipboard.read().then((data) => {
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].types.includes("image/png")) {
+                    data[i].getType("image/png").then((blob) => {
+                        let reader = new FileReader();
+                        reader.readAsDataURL(blob);
+                        reader.onloadend = function () {
+                            let base64data = reader.result;
+                            if (base64data === previous_base64data) {
+                                return
+                            }
+                            on_image_paste(base64data)
+                            document.getElementById("pasted_image").src = base64data
+                            previous_base64data = base64data
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+
+
+
+    function on_image_paste(imageDataBase64) {
+        {#console.log(imageDataBase64)#}
+        cropper.destroy()
+        if (typeof imageDataBase64 !== 'undefined') {
+            document.getElementById("original_image").src = imageDataBase64
+            document.getElementById("base_64_text").value = imageDataBase64
+        }
+        document.getElementById("generated_text").style.display = "none"
+        document.getElementById("pasted_image").style.opacity = "0.6"
+        document.getElementById("spinner_div").classList.add("spinner")
+
+
+
+        document.getElementById("pasted_image").onload = function() {
+        let spinner_size = document.getElementById("pasted_image").width / 5;
+        if (spinner_size>document.getElementById("pasted_image").height){
+            spinner_size = document.getElementById("pasted_image").height / 1.25;
+        }
+        let spinner_margin = -0.5 * spinner_size
+        add_css_rule(`.spinner::before {width: ${spinner_size}px;height: ${spinner_size}px;margin-top: ${spinner_margin}px;margin-left: ${spinner_margin}px;}`)
+
+};
+
+
+
+
+        let xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            try {
+
+
+                let json_response = JSON.parse(xhr.response)
+                document.getElementById("generated_text").innerText = json_response["image_text"]
+                document.getElementById("pasted_image").src = "data:image/jpeg;base64, " + json_response["base_64_image"]
+                document.getElementById("generated_text").style.display = "block"
+                document.getElementById("button_div").style.display = "block"
+
+                document.getElementById("copy_text_button").innerHTML = 'Copy';
+                document.getElementById("copy_text_button").style.cursor = 'pointer'
+
+                document.querySelector("#translate_text_button").innerText = "Translate"
+                document.querySelector("#translate_text_button").style.cursor = 'pointer'
+                document.querySelector("#translate_text_button").setAttribute("onclick", "translate_text()")
+
+                document.getElementById("pasted_image").style.opacity = "1"
+                document.getElementById("spinner_div").classList.remove("spinner")
+                document.getElementById("generated_text").contentEditable = "true"
+
+
+
+                $(".imageSection button").click(function () {
+                    $(".imageSection img").removeClass("activeImage");
+                    $(this).parent().find("img").addClass("activeImage");
+                });
+                $(".imageSection:eq(0) img").addClass("activeImage");
+
+                {#document.getElementById("canvas").style.display = "block"#}
+                create_cropper()
+
+            } catch (e) {
+                document.getElementById("generated_text").contentEditable = "false"
+                console.log("error:", e)
+                document.getElementById("generated_text").innerText = xhr.response
+                document.getElementById("generated_text").style.display = "block"
+                document.getElementById("button_div").style.display = "none"
+                document.getElementById("pasted_image").style.opacity = "1"
+                document.getElementById("spinner_div").classList.remove("spinner")
+            }
+
+
+        }
+        let form_element = document.getElementsByTagName("form")[0]
+        xhr.open(form_element.method, form_element.action, true);
+        xhr.send(new FormData(form_element));
+        {#document.getElementsByTagName("form")[0].submit()#}
+
+    }
+
+    function create_cropper() {
+
+        cropper.destroy()
+
+        cropper = new Cropper(image, {
+            autoCrop: false,
+            viewMode: 1,
+            minCropBoxWidth: 20,
+            minCropBoxHeight: 20,
+            autoCropArea: 1,
+            //zoomable: false,
+            //zoomOnWheel: false,
+            guides: false,
+            center: false,
+            // crop(event) {
+            //  console.log(event.detail.x + "|" + event.detail.y + "|" +
+            //      event.detail.width + "|" + event.detail.height)
+            //},
+            ready() {
+                // document.querySelector(".cropper-hide").src = document.querySelector("#original_image").src
+                document.querySelector("span.cropper-view-box > img").src = document.querySelector("#original_image").src
+
+
+            },
+
+            cropstart() {
+                document.querySelector(".cropper-crop-box").style.display = "block"
+
+                console.log("crop start")
+            },
+            cropend() {
+                //TODO start
+                cropper.disable()
+                if (document.getElementById("spinner_div_2") === null){
+                    let crop_spinner = document.createElement("div")
+                    crop_spinner.id = "spinner_div_2"
+                    document.querySelector("span.cropper-view-box").appendChild(crop_spinner)
+                }
+                  {#document.querySelector("span.cropper-view-box > img").style.opacity = "0"#}
+                let spinner_size = document.querySelector("span.cropper-face.cropper-move").offsetWidth / 5;
+                if (spinner_size > document.querySelector("span.cropper-face.cropper-move").offsetHeight) {
+                    spinner_size = document.querySelector("span.cropper-face.cropper-move").offsetHeight / 1.25;
+                }
+                let spinner_margin = -0.5 * spinner_size
+                console.log(spinner_size)
+                if (spinner_size < 20) {
+                    spinner_size *= 1.25
+                    add_css_rule(`.spinner::before {width: ${spinner_size}px;height: ${spinner_size}px;margin-top: ${spinner_margin}px;margin-left: ${spinner_margin}px;} .spinner::before{border-width: ${spinner_size/5}px}`);
+                } else {
+                    add_css_rule(`.spinner::before {width: ${spinner_size}px;height: ${spinner_size}px;margin-top: ${spinner_margin}px;margin-left: ${spinner_margin}px;} .spinner::before{border-width: 6px}`);
+                }
+
+                document.getElementById("spinner_div_2").classList.add("spinner");
+                //TODO end--%>
+
+
+                console.log("crop end", cropper.getData([true]).x, cropper.getData([true]).y, cropper.getData([true]).width, cropper.getData([true]).height)
+                fetch("/crop", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        language: document.querySelector("body > form").language.value,
+                        base64_image: document.getElementById("original_image").src,
+                        x: cropper.getData([true]).x,
+                        y: cropper.getData([true]).y,
+                        width: cropper.getData([true]).width,
+                        height: cropper.getData([true]).height
+                    }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        //TODO start
+                        {#document.querySelector("span.cropper-view-box > img").style.opacity = "1"#}
+                        cropper.enable()
+
+                        document.getElementById("spinner_div_2").classList.remove("spinner")
+                        //TODO end--%>
+                            if (!data["error"]) {
+                                console.log(data["image_text"])
+                                document.querySelector("#generated_text").innerText = data["image_text"]
+                                document.getElementById("generated_text").contentEditable = "true"
+
+                                document.getElementById("button_div").style.display = "block"
+                                document.getElementById("copy_text_button").innerHTML = "Copy";
+                                document.getElementById('copy_text_button').classList.add('blue_button_enabled')
+                                document.getElementById('translate_text_button').classList.add('blue_button_enabled')
+                                document.getElementById("copy_text_button").style.cursor = "pointer"
+                                document.querySelector("#translate_text_button").innerText = "Translate"
+                                document.querySelector("#translate_text_button").style.cursor = "pointer"
+                                document.querySelector("#translate_text_button").setAttribute("onclick", "translate_text()")
+                            } else {
+                                document.getElementById("generated_text").contentEditable = "false"
+                                document.getElementById("button_div").style.display = "none"
+                                document.getElementById("generated_text").innerText = data["error"]
+                            }
+
+                        }
+                    );
+            },
+        });
+
+    }
+
+
+    function retrieveImageFromClipboardAsBase64(pasteEvent, callback, imageFormat) {
+        if (pasteEvent.clipboardData === false) {
+            if (typeof (callback) == "function") {
+                callback(undefined);
+            }
+        }
+
+        const items = pasteEvent.clipboardData.items;
+
+        if (items === undefined) {
+            if (typeof (callback) == "function") {
+                callback(undefined);
+            }
+        }
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf("image") === -1) continue;
+            const blob = items[i].getAsFile();
+
+            const mycanvas = document.createElement("canvas");
+            const ctx = mycanvas.getContext('2d');
+
+            const img = new Image();
+
+            img.onload = function () {
+                mycanvas.width = this.width;
+                mycanvas.height = this.height;
+
+                ctx.drawImage(img, 0, 0);
+
+                if (typeof (callback) == "function") {
+                    callback(mycanvas.toDataURL(
+                        (imageFormat || "image/png")
+                    ));
+                }
+            };
+
+            const URLObj = window.URL || window.webkitURL;
+
+            img.src = URLObj.createObjectURL(blob);
+            document.getElementById("pasted_image").src = URLObj.createObjectURL(blob);
+        }
+    }
+
+    let language = "eng"
+    let radio_buttons = document.querySelectorAll("input[type='radio']")
+    radio_buttons.forEach(radio_button => radio_button.addEventListener("click", (e) => {
+        if (e.target.value !== language) {
+            if (document.querySelector("#base_64_text").value !== "") {
+                on_image_paste();
+            }
+        }
+
+        language = document.querySelector("body > form").language.value;
+
+    }));
+
+
+    function add_css_rule(css_rule) {
+        if (document.getElementById("spinner_size") !== null) {
+            document.getElementById("spinner_size").remove()
+        }
+        let stylesheet_element = document.createElement("style");
+        stylesheet_element.setAttribute("type", "text/css");
+        stylesheet_element.setAttribute("id", "spinner_size")
+        stylesheet_element.appendChild(document.createTextNode(css_rule));
+        document.getElementsByTagName("head")[0].appendChild(stylesheet_element);
+    }
+
+$(document).keydown(function(e){
+      if( e.which === 65 && e.ctrlKey ){
+         document.querySelector("#generated_text").focus()
+      }
+});
+
+
+
+
+
+</script>
+<h3 style="padding: 1rem;
+    font-weight: bolder;
+    margin: 2rem auto;
+    color: #005aff;
+    font-size: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 5px 5px 30px rgba(0,0,0, 0.4);
+    max-width: 65rem;">Instructions: copy any image with text inside to your clipboard and the website will extract the text inside. Made by <a class="anim-typewriter" href="https://github.com/Snir-Dekel" target="_blank"
+                                                                                                                                                >Snir Dekel</a> with cropperjs,
+    python,
+    tesseractOCR (Optical
+    Character Recognition) and flask to handle http requests.
+ {% if mobile %}
+        <br><span style="color: #ff0202!important;">Warning! The website is only supported on a PC.</span>{% endif %}</h3>
+</body>
+</html>
